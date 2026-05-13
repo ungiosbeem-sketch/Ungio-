@@ -7,9 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "ungio",
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "package": "com.abdalla.ungio",
       "adaptiveIcon": {
