@@ -1,91 +1,82 @@
-// app/(tabs)/profile.tsx
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../../lib/supabase';
 import { theme } from '../../theme';
-import { useAuth } from '../../store/AuthContext'; // Si aan u ogaano qofka soo galay
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { decode } from 'base64-arraybuffer'; // Ku dar kani: npx expo install base64-arraybuffer
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('https://via.placeholder.com/150');
 
-  const handleLogout = () => {
-    logout();
-    router.replace('/auth/login'); // Markuu baxo wuxuu ku noqonayaa Login
+  // 1. Sawir xulashada (Pick Image)
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      uploadAvatar(result.assets[0].base64);
+    }
+  };
+
+  // 2. Upload gareynta Supabase Storage
+  const uploadAvatar = async (base64: string) => {
+    try {
+      setLoading(true);
+      const user = (await supabase.auth.getUser()).data.user;
+      const filePath = `${user?.id}/${Math.random()}.png`;
+
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, decode(base64), { contentType: 'image/png' });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setAvatarUrl(data.publicUrl);
+      Alert.alert("Guul!", "Sawirka waa la soo geliyay.");
+    } catch (error: any) {
+      Alert.alert("Upload Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileHeader}>
-        {/* Profile Image Placeholder */}
-        <View style={styles.avatar}>
-           <Ionicons name="person" size={50} color={theme.colors.textSecondary} />
-        </View>
-        
-        <Text style={styles.userName}>{user?.name || 'Abdalla Keynan'}</Text>
-        <Text style={styles.userEmail}>{user?.email || 'abdalla@example.com'}</Text>
-      </View>
+      <TouchableOpacity onPress={pickImage}>
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        <Text style={{ color: theme.colors.primary, marginTop: 10 }}>Beddel Sawirka</Text>
+      </TouchableOpacity>
 
-      <View style={styles.menuSection}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={theme.colors.error} />
-          <Text style={styles.logoutText}>Ka bax App-ka (Logout)</Text>
-        </TouchableOpacity>
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor="#666"
+        value={username}
+        onChangeText={setUsername}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={() => Alert.alert("Profile Updated!")}>
+        <Text style={styles.buttonText}>Keydi Isbeddelka</Text>
+      </TouchableOpacity>
+      
+      {loading && <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.lg,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 40,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    marginTop: 5,
-  },
-  menuSection: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingTop: 20,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 15,
-    backgroundColor: 'rgba(255, 69, 58, 0.1)', // Midab casaan khafiif ah
-    borderRadius: 12,
-  },
-  logoutText: {
-    color: theme.colors.error,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#000', alignItems: 'center', padding: 20 },
+  avatar: { width: 150, height: 150, borderRadius: 75, borderWidth: 2, borderColor: '#333' },
+  input: { width: '100%', backgroundColor: '#111', color: '#fff', padding: 15, borderRadius: 10, marginTop: 30 },
+  button: { backgroundColor: '#3b82f6', width: '100%', padding: 15, borderRadius: 10, marginTop: 20, alignItems: 'center' },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  loader: { position: 'absolute', top: '50%' }
 });
