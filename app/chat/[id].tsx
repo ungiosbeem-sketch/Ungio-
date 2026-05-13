@@ -30,7 +30,7 @@ export default function ChatDetailScreen() {
 
   // 2. Shaqada sawirka (Jilitaanka)
   const handlePickImage = () => {
-    // Maadaama aynaan terminal haysan, waxaan jilaynaa sawir la soo doortay
+    // Sawir tusaale ah
     const dummyImage = `https://picsum.photos/seed/${Math.random()}/400/300`; 
     sendMessage(dummyImage, 'image');
   };
@@ -41,6 +41,7 @@ export default function ChatDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
+      {/* Header-ka oo magaca User-ka leh */}
       <Stack.Screen options={{ title: `User ${id}` }} />
       
       <FlatList
@@ -58,8 +59,9 @@ export default function ChatDetailScreen() {
         contentContainerStyle={styles.listContent}
       />
 
-      {/* Input Section - Halkan ayaa isbeddelka ugu weyn ku dhacay */}
+      {/* Input Section */}
       <View style={styles.inputContainer}>
+        {/* Batoonka Sawirka */}
         <TouchableOpacity onPress={handlePickImage} style={styles.attachButton}>
           <Ionicons name="add-circle-outline" size={30} color={theme.colors.primary} />
         </TouchableOpacity>
@@ -70,9 +72,9 @@ export default function ChatDetailScreen() {
           placeholderTextColor={theme.colors.textSecondary}
           value={inputText}
           onChangeText={setInputText}
-          multiline={false}
         />
         
+        {/* Batoonka Dirista */}
         <TouchableOpacity 
           style={[styles.sendButton, { opacity: inputText.trim().length > 0 ? 1 : 0.7 }]} 
           onPress={handleSend}
@@ -85,6 +87,9 @@ export default function ChatDetailScreen() {
   );
 }
 
+// ---------------------------------------------------------
+// STYLES - Halkan ayay wada galeen dhamaan styles-kii
+// ---------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -100,10 +105,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
-    paddingBottom: Platform.OS === 'ios' ? 30 : theme.spacing.md, // Correction for iOS
   },
   attachButton: {
-    marginRight: 10,
+    marginRight: 10, // Kani waa kii aan hadda sharaxnay!
   },
   input: {
     flex: 1,
