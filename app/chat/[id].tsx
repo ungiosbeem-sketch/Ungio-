@@ -1,19 +1,23 @@
 // app/chat/[id].tsx
+import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import { useChat } from '../../store/ChatContext'; // Soo jiid xogta chat-ka
 import MessageBubble from '../../components/MessageBubble';
 
 export default function ChatDetailScreen() {
-  const { id } = useLocalSearchParams(); // Halkan waxaa ku jira ID-ga qofka
+  const { id } = useLocalSearchParams();
+  const { messages, sendMessage } = useChat(); // Ka soo saar xogta iyo function-ka
+  const [inputText, setInputText] = useState('');
 
-  // Tusaale fariimo ah
-  const messages = [
-    { id: '1', text: 'Sidee tahay saaxiib?', isMe: false, time: '10:00 AM' },
-    { id: '2', text: 'Waan fiicanahay, mashruucii ma dhamaysay?', isMe: true, time: '10:02 AM' },
-    { id: '3', text: 'Haa, haddaan GitHub u diray.', isMe: false, time: '10:05 AM' },
-  ];
+  const handleSend = () => {
+    if (inputText.length > 0) {
+      sendMessage(inputText);
+      setInputText(''); // Faaruqi input-ka ka dib marka la diro
+    }
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -21,8 +25,6 @@ export default function ChatDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <Stack.Screen options={{ title: `User ${id}`, headerTitleAlign: 'center' }} />
-      
       <FlatList
         data={messages}
         keyExtractor={(item) => item.id}
@@ -32,14 +34,15 @@ export default function ChatDetailScreen() {
         contentContainerStyle={styles.listContent}
       />
 
-      {/* Input-ka hoose ee fariinta laga diro */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Farriin qor..."
           placeholderTextColor={theme.colors.textSecondary}
+          value={inputText}
+          onChangeText={setInputText}
         />
-        <TouchableOpacity style={styles.sendButton}>
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
           <Ionicons name="send" size={20} color="#000" />
         </TouchableOpacity>
       </View>
@@ -48,13 +51,8 @@ export default function ChatDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  listContent: {
-    padding: theme.spacing.md,
-  },
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  listContent: { padding: theme.spacing.md },
   inputContainer: {
     flexDirection: 'row',
     padding: theme.spacing.md,
