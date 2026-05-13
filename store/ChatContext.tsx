@@ -1,10 +1,11 @@
 // store/ChatContext.tsx
 import React, { createContext, useState, useContext } from 'react';
 
-// Qeexidda qaabka fariintu u ekaanayso
 interface Message {
   id: string;
-  text: string;
+  text?: string;    // Qoraalku waa ikhtiyaari hadda
+  image?: string;   // Sawirka isna waa ikhtiyaari
+  type: 'text' | 'image'; // Nooca fariinta
   isMe: boolean;
   time: string;
 }
@@ -12,24 +13,19 @@ interface Message {
 const ChatContext = createContext<any>(null);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  // Waxaan ku bilaabaynaa fariimo tusaale ah
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: 'Asc Abdalla! Sidee tahay?', isMe: false, time: '10:00 AM' },
-    { id: '2', text: 'Walaal app-kii ma dhamaysay?', isMe: false, time: '10:05 AM' },
+    { id: '1', text: 'Asc Abdalla!', type: 'text', isMe: false, time: '10:00 AM' },
   ]);
 
-  // Function fariin cusub lagu darayo
-  const sendMessage = (text: string) => {
-    if (text.trim() === '') return;
-
+  const sendMessage = (content: string, type: 'text' | 'image' = 'text') => {
     const newMessage: Message = {
-      id: Math.random().toString(), // Aqoonsi gaar ah
-      text: text,
+      id: Math.random().toString(),
+      [type === 'text' ? 'text' : 'image']: content,
+      type: type,
       isMe: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
   };
 
   return (
