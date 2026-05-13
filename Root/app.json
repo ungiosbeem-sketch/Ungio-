@@ -4,7 +4,7 @@
     "slug": "ungio-",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "ungio",
     "ios": {
@@ -13,12 +13,12 @@
     "android": {
       "package": "com.abdalla.ungio",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       }
     },
     "web": {
-      "favicon": "./assets/icons/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
