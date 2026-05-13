@@ -1,136 +1,65 @@
-// app/(tabs)/index.tsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, TextInput, StyleSheet, TouchableOpacity, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { supabase } from '../../lib/supabase';
+import { useChat } from '../../store/ChatContext'; // Hubi in ChatProvider uu ku duuban yahay _layout.tsx
 import { theme } from '../../theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
-export default function ChatsScreen() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+export default function ChatScreen() {
+  const { messages, sendMessage } = useChat();
+  const [inputText, setInputText] = useState('');
 
-  // Tusaale dadka lala hadlay (Mustaqbalka database ayaa laga soo akhrin doonaa)
-  const allChats = [
-    { id: '1', name: 'Abdalla Keynan', lastMessage: 'Maanta app-ka ma dhamaystiraa?', time: '12:30 PM' },
-    { id: '2', name: 'Software Team', lastMessage: 'Update-ka cusub soo dir.', time: '11:15 AM' },
-    { id: '3', name: 'Ahmed Ali', lastMessage: 'Asc walaal.', time: 'Yesterday' },
-    { id: '4', name: 'Sahra Blue', lastMessage: 'Sawirka ma aragtay?', time: 'Monday' },
-  ];
-
-  // Logic-ga lagu kala shaandheeyo (Filter) dadka
-  const filteredChats = allChats.filter(chat =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSend = () => {
+    if (inputText.trim()) {
+      sendMessage(inputText);
+      setInputText('');
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Raadi qof..."
-            placeholderTextColor={theme.colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      {/* Chat List */}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      style={styles.container}
+      keyboardVerticalOffset={90}
+    >
       <FlatList
-        data={filteredChats}
+        data={messages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.chatItem}
-            onPress={() => router.push(`/chat/${item.id}`)}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.name[0]}</Text>
-            </View>
-            <View style={styles.chatInfo}>
-              <View style={styles.chatHeader}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.time}>{item.time}</Text>
-              </View>
-              <Text style={styles.message} numberOfLines={1}>{item.lastMessage}</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={[styles.messageBubble, item.isMe ? styles.myMessage : styles.theirMessage]}>
+            <Text style={styles.messageText}>{item.text}</Text>
+            <Text style={styles.timeText}>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          </View>
         )}
+        contentContainerStyle={styles.listContent}
       />
-    </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Farriin qor..."
+          placeholderTextColor="#666"
+          value={inputText}
+          onChangeText={setInputText}
+          multiline
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+          <Ionicons name="send" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  searchSection: {
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.background,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 45,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: theme.colors.text,
-    fontSize: 16,
-  },
-  chatItem: {
-    flexDirection: 'row',
-    padding: theme.spacing.md,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 55,
-    height: 55,
-    borderRadius: 27.5,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: theme.spacing.md,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  chatInfo: {
-    flex: 1,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.colors.border,
-    paddingBottom: 15,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  name: {
-    color: theme.colors.text,
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  time: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-  },
-  message: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-  },
+  container: { flex: 1, backgroundColor: '#000' },
+  listContent: { padding: 20 },
+  messageBubble: { padding: 12, borderRadius: 15, marginBottom: 10, maxWidth: '80%' },
+  myMessage: { alignSelf: 'flex-end', backgroundColor: '#3b82f6' },
+  theirMessage: { alignSelf: 'flex-start', backgroundColor: '#262626' },
+  messageText: { color: '#fff', fontSize: 16 },
+  timeText: { color: 'rgba(255,255,255,0.5)', fontSize: 10, marginTop: 5, alignSelf: 'flex-end' },
+  inputContainer: { flexDirection: 'row', padding: 15, backgroundColor: '#121212', alignItems: 'center' },
+  input: { flex: 1, backgroundColor: '#1e1e1e', color: '#fff', borderRadius: 25, paddingHorizontal: 20, paddingVertical: 10, marginRight: 10 },
+  sendButton: { backgroundColor: '#3b82f6', width: 45, height: 45, borderRadius: 22.5, justifyContent: 'center', alignItems: 'center' }
 });
-    
