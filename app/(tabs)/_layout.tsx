@@ -11,29 +11,28 @@ export default function TabsLayout() {
           backgroundColor: theme.colors.background,
           borderTopColor: theme.colors.border,
           height: 60,
-          paddingBottom: 10,
         },
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
-        headerStyle: {
-          backgroundColor: theme.colors.background,
-        },
-        headerTitleStyle: {
-          color: theme.colors.text,
-          fontWeight: 'bold',
-        },
+        headerStyle: { backgroundColor: theme.colors.background },
+        headerTintColor: theme.colors.text,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Chats',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={24} color={color} />,
         }}
       />
-      {/* Halkan waxaad ku dari kartaa bogag kale sida Profile ama Settings */}
+      
+      {/* Kani waa kan cusub ee Profile-ka */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={24} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
