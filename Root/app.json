@@ -6,7 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "scheme": "ungio",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
       "package": "com.abdalla.ungio",
       "adaptiveIcon": {
@@ -17,6 +25,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "sdkVersion": "50.0.0"
+    "extra": {
+      "eas": {
+        "projectId": "6a6201ae-c492-41ec-bc57-4c64d6236f68"
+      }
+    }
   }
 }
