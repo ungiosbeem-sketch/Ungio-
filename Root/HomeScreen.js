@@ -1,215 +1,114 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  StatusBar, 
-  TouchableOpacity, 
-  ScrollView,
-  ActivityIndicator 
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from './supabase';
 
 export default function HomeScreen({ navigation }) {
-  const [loading, setLoading] = useState(false);
-  const [tasks, setTasks] = useState([]);
-
-  // Tusaale ahaan xogta laga soo jiidato Supabase
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .limit(5);
-      
-      if (data) setTasks(data);
-    } catch (error) {
-      console.log("Error fetching tasks:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       
-      {/* Header-ka sare */}
+      {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.welcomeText}>Assalaamu calaykum,</Text>
-          <Text style={styles.userName}>Abdalla Keynan</Text>
+          <Text style={styles.appTitle}>Ungio Planner</Text>
+          <Text style={styles.subTitle}>Maamul hawlahaaga, Abdalla</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={26} color="#333" />
-        </TouchableOpacity>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity><Ionicons name="notifications-outline" size={24} color="white" /></TouchableOpacity>
+          <TouchableOpacity style={{marginLeft: 15}}><Ionicons name="moon-outline" size={24} color="white" /></TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        {/* Progress Card (Bedelkii Circular Progress-ka) */}
-        <View style={styles.progressCard}>
-          <View>
-            <Text style={styles.progressTitle}>Daily Progress</Text>
-            <Text style={styles.progressSub}>You have completed 75% of your tasks.</Text>
-          </View>
-          <View style={styles.percentageCircle}>
-            <Text style={styles.percentageText}>75%</Text>
-          </View>
-        </View>
-
-        {/* Qaybta Hawlaha (Tasks Section) */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Tasks</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Stats')}>
-            <Text style={styles.seeAll}>See All</Text>
+      <ScrollView contentContainerStyle={{padding: 20}}>
+        {/* Quick Add Bar */}
+        <View style={styles.searchBar}>
+          <Text style={styles.placeholderText}>Maxaad qorshaynaysaa?</Text>
+          <TouchableOpacity style={styles.addButtonSmall}>
+            <Ionicons name="add" size={20} color="black" />
           </TouchableOpacity>
         </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#4A90E2" style={{ marginTop: 20 }} />
-        ) : (
-          tasks.map((item, index) => (
-            <View key={index} style={styles.taskItem}>
-              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-              <View style={styles.taskInfo}>
-                <Text style={styles.taskText}>{item.title || 'New Task'}</Text>
-                <Text style={styles.taskTime}>Today, 10:00 AM</Text>
-              </View>
-            </View>
-          ))
-        )}
+        {/* Stats Cards Row */}
+        <View style={styles.statsRow}>
+          <StatCard title="Wadarta" count="16" icon="list" color="#FFD700" />
+          <StatCard title="Dhammeeyay" count="12" icon="checkmark-done" color="#4CAF50" />
+          <StatCard title="Hadhay" count="4" icon="time" color="#FF5252" />
+        </View>
+
+        {/* Task Section */}
+        <Text style={styles.sectionTitle}>Hawlaha Maanta</Text>
+        
+        <TaskItem title="Quraan akhris" time="06:00 AM" category="Study" priority="High" />
+        <TaskItem title="Wax akhris" time="04:00 PM" category="Study" priority="Medium" />
+        <TaskItem title="Dhar dhaqid" time="07:00 PM" category="Personal" priority="Low" />
 
       </ScrollView>
 
-      {/* Floating Action Button (FAB) */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddTask')}
-      >
-        <Ionicons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      {/* Custom Bottom Tab (Dabaqa hoose) */}
+      <View style={styles.bottomTab}>
+        <TabIcon name="home" label="Home" active />
+        <TabIcon name="calendar" label="Calendar" />
+        <TouchableOpacity style={styles.mainFab} onPress={() => navigation.navigate('AddTask')}>
+           <Ionicons name="add" size={35} color="black" />
+        </TouchableOpacity>
+        <TabIcon name="bar-chart" label="Stats" />
+        <TabIcon name="person" label="Profile" />
+      </View>
     </SafeAreaView>
   );
 }
 
+// Components yaryar oo koodhka nidaamiya
+const StatCard = ({ title, count, icon, color }) => (
+  <View style={styles.statCard}>
+    <Ionicons name={icon} size={20} color={color} />
+    <Text style={styles.statCount}>{count}</Text>
+    <Text style={styles.statLabel}>{title}</Text>
+  </View>
+);
+
+const TaskItem = ({ title, time, category, priority }) => (
+  <View style={styles.taskCard}>
+    <View style={styles.taskInfo}>
+      <View style={[styles.priorityDot, {backgroundColor: priority === 'High' ? '#FFD700' : '#888'}]} />
+      <View>
+        <Text style={styles.taskTitle}>{title}</Text>
+        <Text style={styles.taskDetails}>{time} • {category}</Text>
+      </View>
+    </View>
+    <TouchableOpacity><Ionicons name="square-outline" size={24} color="#555" /></TouchableOpacity>
+  </View>
+);
+
+const TabIcon = ({ name, label, active }) => (
+  <TouchableOpacity style={styles.tabItem}>
+    <Ionicons name={name} size={22} color={active ? '#FFD700' : '#888'} />
+    <Text style={[styles.tabLabel, {color: active ? '#FFD700' : '#888'}]}>{label}</Text>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
-  },
-  iconButton: {
-    padding: 8,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 12,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  progressCard: {
-    backgroundColor: '#4A90E2',
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 25,
-    elevation: 5,
-  },
-  progressTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  progressSub: {
-    color: '#E0E0E0',
-    fontSize: 12,
-    marginTop: 5,
-  },
-  percentageCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  percentageText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  seeAll: {
-    color: '#4A90E2',
-  },
-  taskItem: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  taskInfo: {
-    marginLeft: 15,
-  },
-  taskText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  taskTime: {
-    fontSize: 12,
-    color: '#999',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#4A90E2',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-  }
+  container: { flex: 1, backgroundColor: '#000' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 40 },
+  appTitle: { color: '#FFD700', fontSize: 24, fontWeight: 'bold' },
+  subTitle: { color: '#888', fontSize: 13 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center' },
+  searchBar: { backgroundColor: '#1E1E1E', borderRadius: 12, padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+  placeholderText: { color: '#555' },
+  addButtonSmall: { backgroundColor: '#FFD700', borderRadius: 8, padding: 5 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
+  statCard: { backgroundColor: '#1E1E1E', width: '30%', padding: 15, borderRadius: 15, alignItems: 'center' },
+  statCount: { color: 'white', fontSize: 18, fontWeight: 'bold', marginVertical: 5 },
+  statLabel: { color: '#888', fontSize: 11 },
+  sectionTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  taskCard: { backgroundColor: '#1E1E1E', padding: 15, borderRadius: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  taskInfo: { flexDirection: 'row', alignItems: 'center' },
+  priorityDot: { width: 10, height: 10, borderRadius: 5, marginRight: 15 },
+  taskTitle: { color: 'white', fontSize: 16, fontWeight: '500' },
+  taskDetails: { color: '#666', fontSize: 12, marginTop: 2 },
+  bottomTab: { flexDirection: 'row', backgroundColor: '#121212', paddingVertical: 10, borderTopWidth: 0.5, borderTopColor: '#333', justifyContent: 'space-around', alignItems: 'center' },
+  tabItem: { alignItems: 'center' },
+  tabLabel: { fontSize: 10, marginTop: 4 },
+  mainFab: { backgroundColor: '#FFD700', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginTop: -30, elevation: 5 }
 });
+          
