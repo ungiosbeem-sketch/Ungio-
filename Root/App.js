@@ -1,30 +1,25 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-// 1. Soo daji bogagga app-ka (Hubi inay magacyadu sax yihiin)
+// 1. Soo daji bogagga app-ka (Hubi in fayl kasta magaciisu sax yahay)
 import HomeScreen from './HomeScreen';
 import AddTaskScreen from './AddTaskScreen';
+import StatsScreen from './StatsScreen'; // Waxay ka dhimanayd koodhkaagii
+import ProfileScreen from './ProfileScreen'; // Waxay ka dhimanayd koodhkaagii
 
-// 2. Abuuro bogagga hadda dhiman (Placeholders)
-// Waxaad ku beddeli doontaa fayllada rasmiga ah markaan dhisno
+// 2. Bogga Calendar (Hadda placeholder ka dhig haddii uusan diyaar ahayn)
+import { View } from 'react-native';
 function CalendarScreen() { 
-  return <View style={{ flex: 1, backgroundColor: '#000' }} />; 
-}
-function StatsScreen() { 
-  return <View style={{ flex: 1, backgroundColor: '#000' }} />; 
-}
-function ProfileScreen() { 
   return <View style={{ flex: 1, backgroundColor: '#000' }} />; 
 }
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// 3. Qaybta Bottom Tabs (Home, Calendar, Stats, Profile)
+// 3. Qaybta Bottom Tabs
 function MyTabs() {
   return (
     <Tab.Navigator
@@ -37,11 +32,10 @@ function MyTabs() {
           paddingBottom: 15,
           paddingTop: 10,
           position: 'absolute',
-          borderTopColor: 'transparent',
           elevation: 0
         },
-        tabBarActiveTintColor: '#FFD700', // Midabka dahabka ah markaad taabato
-        tabBarInactiveTintColor: '#444',   // Midabka cawlka ah markaad ka maqan tahay
+        tabBarActiveTintColor: '#FFD700',
+        tabBarInactiveTintColor: '#444',
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
           if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
@@ -51,10 +45,6 @@ function MyTabs() {
           
           return <Ionicons name={iconName} size={26} color={color} />;
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        }
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
@@ -65,29 +55,22 @@ function MyTabs() {
   );
 }
 
-// 4. Maamulaha guud ee isku xiraya Tabs-ka iyo bogga AddTask
+// 4. Maamulaha guud
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{ 
-          headerShown: false,
-          animation: 'slide_from_right' 
-        }}
-      >
-        {/* Marka hore Tabs-ka ayaa soo baxaya */}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MyTabs} />
-        
-        {/* Bogga AddTask wuxuu dusha ka fuulayaa Tabs-ka */}
         <Stack.Screen 
           name="AddTask" 
           component={AddTaskScreen} 
           options={{ 
-            animation: 'slide_from_bottom', // Wuxuu ka soo kacayaa hoos sidii naqshadda
-            presentation: 'modal' 
+            animation: 'slide_from_bottom',
+            presentation: 'transparentModal' 
           }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+      }
+    
