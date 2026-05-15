@@ -1,119 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, Text, View, ScrollView, SafeAreaView, 
-  StatusBar, Dimensions 
-} from 'react-native';
-import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import React from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from './supabase';
-
-const screenWidth = Dimensions.get("window").width;
 
 export default function StatsScreen() {
-  const [stats, setStats] = useState({ total: 0, completed: 0, progress: 0, streak: 7 });
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  async function fetchStats() {
-    const { data, error } = await supabase.from('tasks').select('*');
-    if (!error && data) {
-      const completed = data.filter(t => t.status === 'completed').length;
-      const total = data.length;
-      setStats({
-        total,
-        completed,
-        progress: total > 0 ? Math.round((completed / total) * 100) : 0,
-        streak: 7 // Tusaale ahaan
-      });
-    }
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Statistics</Text>
+        <Text style={styles.title}>Statistics</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        
-        {/* Main Progress Circle */}
-        <View style={styles.mainCard}>
-          <Text style={styles.cardTitle}>This Week</Text>
-          <View style={styles.progressContainer}>
-            <AnimatedCircularProgress
-              size={180}
-              width={15}
-              fill={stats.progress}
-              tintColor="#FFD700"
-              backgroundColor="#222"
-              rotation={0}
-              lineCap="round"
-            >
-              {(fill) => (
-                <View style={styles.innerCircle}>
-                  <Text style={styles.percentText}>{stats.progress}%</Text>
-                  <Text style={styles.subPercentText}>Hawlaha la{"\n"}dhammeeyey</Text>
-                </View>
-              )}
-            </AnimatedCircularProgress>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.statBox}>
+          <View style={styles.statInfo}>
+            <Text style={styles.statLabel}>Total Tasks</Text>
+            <Text style={styles.statNumber}>24</Text>
           </View>
-          <View style={styles.countRow}>
-            <Text style={styles.countText}>{stats.completed} / {stats.total}</Text>
-          </View>
+          <Ionicons name="list" size={30} color="#4A90E2" />
         </View>
 
-        {/* Small Stats Row */}
-        <View style={styles.row}>
-          <View style={styles.smallCard}>
-            <Text style={styles.smallLabel}>Dhammaan</Text>
-            <Text style={styles.smallValue}>{stats.total}</Text>
+        <View style={[styles.statBox, { backgroundColor: '#E8F5E9' }]}>
+          <View style={styles.statInfo}>
+            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statNumber}>18</Text>
           </View>
-          <View style={[styles.smallCard, { borderColor: '#44FF44' }]}>
-            <Text style={styles.smallLabel}>Dhammeeyay</Text>
-            <Text style={[styles.smallValue, { color: '#44FF44' }]}>{stats.completed}</Text>
-          </View>
-          <View style={[styles.smallCard, { borderColor: '#FF4444' }]}>
-            <Text style={styles.smallLabel}>Hadhay</Text>
-            <Text style={[styles.smallValue, { color: '#FF4444' }]}>{stats.total - stats.completed}</Text>
-          </View>
+          <Ionicons name="checkmark-done" size={30} color="#4CAF50" />
         </View>
 
-        {/* Streak Card */}
-        <View style={styles.streakCard}>
-          <Ionicons name="flame" size={30} color="#FF4500" />
-          <View style={{ marginLeft: 20 }}>
-            <Text style={styles.streakLabel}>Streak</Text>
-            <Text style={styles.streakValue}>{stats.streak} maalmood</Text>
+        <View style={styles.chartPlaceholder}>
+          <Text style={styles.placeholderText}>Weekly Activity View</Text>
+          <View style={styles.barContainer}>
+            {[40, 70, 50, 90, 60, 80, 45].map((h, i) => (
+              <View key={i} style={[styles.bar, { height: h }]} />
+            ))}
           </View>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  header: { padding: 20, alignItems: 'center' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  header: { padding: 20, backgroundColor: '#fff' },
+  title: { fontSize: 24, fontWeight: 'bold' },
   content: { padding: 20 },
-  mainCard: { backgroundColor: '#111', borderRadius: 30, padding: 25, alignItems: 'center', marginBottom: 20 },
-  cardTitle: { color: '#666', fontSize: 16, fontWeight: '600', alignSelf: 'flex-start', marginBottom: 20 },
-  progressContainer: { marginVertical: 10 },
-  innerCircle: { alignItems: 'center' },
-  percentText: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
-  subPercentText: { color: '#444', fontSize: 12, textAlign: 'center', marginTop: 5 },
-  countRow: { marginTop: 20 },
-  countText: { color: '#FFD700', fontSize: 20, fontWeight: 'bold' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  smallCard: { backgroundColor: '#111', borderRadius: 20, padding: 15, width: '31%', alignItems: 'center', borderWidth: 1, borderColor: '#222' },
-  smallLabel: { color: '#555', fontSize: 10, marginBottom: 5 },
-  smallValue: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
-  streakCard: { backgroundColor: '#111', borderRadius: 25, padding: 20, flexDirection: 'row', alignItems: 'center' },
-  streakLabel: { color: '#666', fontSize: 14 },
-  streakValue: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  statBox: { backgroundColor: '#E3F2FD', padding: 20, borderRadius: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  statLabel: { fontSize: 14, color: '#666' },
+  statNumber: { fontSize: 24, fontWeight: 'bold', marginTop: 5 },
+  chartPlaceholder: { backgroundColor: '#fff', padding: 20, borderRadius: 20, marginTop: 10, alignItems: 'center' },
+  placeholderText: { fontSize: 16, fontWeight: '500', marginBottom: 20 },
+  barContainer: { flexDirection: 'row', alignItems: 'flex-end', height: 100, gap: 10 },
+  bar: { width: 15, backgroundColor: '#4A90E2', borderRadius: 5 }
 });
-                
