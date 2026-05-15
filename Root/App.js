@@ -5,35 +5,29 @@ import {
   StyleSheet, Text, View, SafeAreaView, ScrollView, 
   TouchableOpacity, TextInput, StatusBar, Alert, ActivityIndicator 
 } from 'react-native';
-import { supabase } from './supabase'; // Hubi in faylkani jiro
+import { supabase } from './supabase';
 
 const Stack = createNativeStackNavigator();
 
-// --- BOGGA HOME: DASHBOARD & TASK MANAGER ---
-function HomeScreen({ navigation }) {
+function HomeScreen() {
   const [taskTitle, setTaskTitle] = useState('');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // 1. Soo aqri xogta marka bogga la furo
   useEffect(() => {
     getTasks();
   }, []);
 
   async function getTasks() {
-    setRefreshing(true);
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) Alert.alert('Cilad Database', error.message);
-    else setTasks(data);
-    setRefreshing(false);
+    if (error) console.log('Error:', error.message);
+    else setTasks(data || []);
   }
 
-  // 2. Ku dar xog cusub Supabase
   async function handleAddTask() {
     if (taskTitle.trim() === '') return;
     setLoading(true);
@@ -43,10 +37,10 @@ function HomeScreen({ navigation }) {
       .insert([{ title: taskTitle, status: 'active' }]);
 
     if (error) {
-      Alert.alert('Lama keydin', error.message);
+      Alert.alert('Cilad', error.message);
     } else {
       setTaskTitle('');
-      getTasks(); // Dib u cusboonaysii liiska
+      getTasks();
     }
     setLoading(false);
   }
@@ -55,14 +49,11 @@ function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
-        
-        {/* Header Section */}
         <View style={styles.header}>
           <Text style={styles.userName}>Ungio Planner</Text>
-          <Text style={styles.greeting}>Maamul qorsheyaashaada, Abdalla</Text>
+          <Text style={styles.greeting}>Maamul hawlahaaga, Abdalla</Text>
         </View>
 
-        {/* Task Input Section */}
         <View style={styles.inputCard}>
           <TextInput 
             style={styles.input}
@@ -71,44 +62,29 @@ function HomeScreen({ navigation }) {
             value={taskTitle}
             onChangeText={setTaskTitle}
           />
-          <TouchableOpacity 
-            style={styles.addButton} 
-            onPress={handleAddTask}
-            disabled={loading}
-          >
+          <TouchableOpacity style={styles.addButton} onPress={handleAddTask} disabled={loading}>
             {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.addButtonText}>+</Text>}
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Hawlaha dhiman</Text>
-            <TouchableOpacity onPress={getTasks}>
-               <Text style={{color: '#FFD700'}}>Refresh</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {tasks.length === 0 && !refreshing ? (
-            <Text style={styles.noTasks}>Ma jiraan hawlo kuu diwaangashan.</Text>
-          ) : (
-            tasks.map((item) => (
-              <View key={item.id} style={styles.listItem}>
-                <View style={styles.statusDot} />
-                <View style={{flex: 1}}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemSub}>{new Date(item.created_at).toLocaleDateString()}</Text>
-                </View>
-                <Text style={styles.statusLabel}>{item.status}</Text>
+          <Text style={styles.sectionTitle}>Hawlaha dhiman</Text>
+          {tasks.map((item) => (
+            <View key={item.id} style={styles.listItem}>
+              <View style={styles.statusDot} />
+              <View style={{flex: 1}}>
+                <Text style={styles.itemTitle}>{item.title}</Text>
+                <Text style={styles.itemSub}>{new Date(item.created_at).toLocaleDateString()}</Text>
               </View>
-            ))
-          )}
+              <Text style={styles.statusLabel}>{item.status}</Text>
+            </View>
+          ))}
         </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-// --- APP ENTRY POINT ---
 export default function App() {
   return (
     <NavigationContainer>
@@ -119,35 +95,28 @@ export default function App() {
   );
 }
 
-// --- STYLE-KA ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0a' },
   safeArea: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 20, marginBottom: 10 },
+  header: { padding: 20 },
   userName: { color: '#FFD700', fontSize: 26, fontWeight: 'bold' },
-  greeting: { color: '#888', fontSize: 14, marginTop: 4 },
+  greeting: { color: '#888', fontSize: 14 },
   inputCard: { 
-    flexDirection: 'row', padding: 20, alignItems: 'center', 
-    backgroundColor: 'rgba(255, 255, 255, 0.03)', marginHorizontal: 20, 
-    borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' 
+    flexDirection: 'row', padding: 15, backgroundColor: 'rgba(255,255,255,0.05)', 
+    marginHorizontal: 20, borderRadius: 15, alignItems: 'center' 
   },
-  input: { flex: 1, color: '#fff', fontSize: 16, paddingRight: 10 },
-  addButton: { 
-    backgroundColor: '#FFD700', width: 45, height: 45, 
-    borderRadius: 12, justifyContent: 'center', alignItems: 'center' 
-  },
+  input: { flex: 1, color: '#fff', fontSize: 16 },
+  addButton: { backgroundColor: '#FFD700', width: 45, height: 45, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   addButtonText: { color: '#000', fontSize: 24, fontWeight: 'bold' },
   scrollContent: { padding: 20 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  noTasks: { color: '#666', textAlign: 'center', marginTop: 40 },
+  sectionTitle: { color: '#fff', fontSize: 18, marginBottom: 15 },
   listItem: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-    padding: 16, borderRadius: 18, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)' 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', 
+    padding: 15, borderRadius: 15, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' 
   },
   statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFD700', marginRight: 15 },
-  itemTitle: { color: '#fff', fontSize: 16, fontWeight: '500' },
-  itemSub: { color: '#666', fontSize: 12, marginTop: 2 },
-  statusLabel: { color: '#FFD700', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' }
+  itemTitle: { color: '#fff', fontSize: 16 },
+  itemSub: { color: '#666', fontSize: 12 },
+  statusLabel: { color: '#FFD700', fontSize: 10, fontWeight: 'bold' }
 });
-              
+    
