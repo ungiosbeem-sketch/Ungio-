@@ -1,13 +1,15 @@
 {
   "expo": {
     "name": "Ungio",
-    "slug": "ungio",
+    "slug": "ungio-kdh5czrzfhc0xvjdnnzj6",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "updates": {
-      "fallbackToCacheTimeout": 0
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
