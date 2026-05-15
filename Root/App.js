@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { 
   StyleSheet, Text, View, SafeAreaView, ScrollView, 
   TouchableOpacity, TextInput, StatusBar, Alert, ActivityIndicator 
 } from 'react-native';
 import { supabase } from './supabase';
 
-const Stack = createNativeStackNavigator();
-
-function HomeScreen() {
+export default function App() {
   const [taskTitle, setTaskTitle] = useState('');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [priority, setPriority] = useState('medium'); // High, Medium, Low
 
   useEffect(() => {
     getTasks();
@@ -23,38 +20,85 @@ function HomeScreen() {
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
-
-    if (error) console.log('Error:', error.message);
-    else setTasks(data || []);
+    if (!error) setTasks(data || []);
   }
 
   async function handleAddTask() {
     if (taskTitle.trim() === '') return;
     setLoading(true);
-
     const { error } = await supabase
       .from('tasks')
-      .insert([{ title: taskTitle, status: 'active' }]);
-
-    if (error) {
-      Alert.alert('Cilad', error.message);
-    } else {
+      .insert([{ title: taskTitle, priority: priority, status: 'active' }]);
+    
+    if (!error) {
       setTaskTitle('');
       getTasks();
     }
     setLoading(false);
   }
 
+  async function deleteTask(id) {
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (!error) getTasks();
+  }
+
+  async function toggleComplete(id, currentStatus) {
+    const newStatus = currentStatus === 'completed' ? 'active' : 'completed';
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus, is_completed: newStatus === 'completed' })
+      .eq('id', id);
+    if (!error) getTasks();
+  }
+
+  const getPriorityColor = (p) => {
+    if (p === 'high') return '#FF4444'; // Red
+    if (p === 'medium') return '#FFD700'; // Yellow
+    return '#44FF44'; // Green
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.userName}>Ungio Planner</Text>
+          <Text style={styles.userName}>Ungio Planner 🔥</Text>
           <Text style={styles.greeting}>Maamul hawlahaaga, Abdalla</Text>
         </View>
 
-        <View style={styles.inputCard}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {tasks.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📂</Text>
+              <Text style={styles.emptyText}>Hawl ma jirto maanta</Text>
+            </View>
+          ) : (
+            tasks.map((item) => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={[styles.listItem, item.status === 'completed' && {opacity: 0.5}]}
+                onLongPress={() => Alert.alert('Delete', 'Ma tirtirtaa hawshan?', [
+                  {text: 'Maya'}, {text: 'Haa', onPress: () => deleteTask(item.id)}
+                ])}
+                onPress={() => toggleComplete(item.id, item.status)}
+              >
+                <View style={[styles.statusDot, {backgroundColor: getPriorityColor(item.priority)}]} />
+                <View style={{flex: 1}}>
+                  <Text style={[styles.itemTitle, item.status === 'completed' && {textDecorationLine: 'line-through'}]}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.itemSub}>{item.category || 'Personal'}</Text>
+                </View>
+                <View style={[styles.badge, {backgroundColor: item.status === 'completed' ? '#44FF44' : '#333'}]}>
+                   <Text style={styles.badgeText}>{item.status}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+
+        {/* Input Area (Pinned to Bottom) */}
+        <View style={styles.inputSection}>
           <TextInput 
             style={styles.input}
             placeholder="Maxaad qorshaynaysaa?"
@@ -62,61 +106,47 @@ function HomeScreen() {
             value={taskTitle}
             onChangeText={setTaskTitle}
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddTask} disabled={loading}>
-            {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.addButtonText}>+</Text>}
+          <TouchableOpacity style={styles.fab} onPress={handleAddTask}>
+            <Text style={styles.fabText}>+</Text>
           </TouchableOpacity>
         </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.sectionTitle}>Hawlaha dhiman</Text>
-          {tasks.map((item) => (
-            <View key={item.id} style={styles.listItem}>
-              <View style={styles.statusDot} />
-              <View style={{flex: 1}}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemSub}>{new Date(item.created_at).toLocaleDateString()}</Text>
-              </View>
-              <Text style={styles.statusLabel}>{item.status}</Text>
-            </View>
-          ))}
-        </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#050505' },
   safeArea: { flex: 1 },
-  header: { padding: 20 },
-  userName: { color: '#FFD700', fontSize: 26, fontWeight: 'bold' },
-  greeting: { color: '#888', fontSize: 14 },
-  inputCard: { 
-    flexDirection: 'row', padding: 15, backgroundColor: 'rgba(255,255,255,0.05)', 
-    marginHorizontal: 20, borderRadius: 15, alignItems: 'center' 
-  },
-  input: { flex: 1, color: '#fff', fontSize: 16 },
-  addButton: { backgroundColor: '#FFD700', width: 45, height: 45, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  addButtonText: { color: '#000', fontSize: 24, fontWeight: 'bold' },
-  scrollContent: { padding: 20 },
-  sectionTitle: { color: '#fff', fontSize: 18, marginBottom: 15 },
+  header: { padding: 25 },
+  userName: { color: '#FFD700', fontSize: 28, fontWeight: '900' },
+  greeting: { color: '#666', fontSize: 14, marginTop: 5 },
+  scrollContent: { padding: 20, paddingBottom: 100 },
   listItem: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', 
-    padding: 15, borderRadius: 15, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', 
+    padding: 18, borderRadius: 20, marginBottom: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5
   },
-  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFD700', marginRight: 15 },
-  itemTitle: { color: '#fff', fontSize: 16 },
-  itemSub: { color: '#666', fontSize: 12 },
-  statusLabel: { color: '#FFD700', fontSize: 10, fontWeight: 'bold' }
+  statusDot: { width: 12, height: 12, borderRadius: 6, marginRight: 15 },
+  itemTitle: { color: '#fff', fontSize: 17, fontWeight: '600' },
+  itemSub: { color: '#555', fontSize: 12, marginTop: 3 },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { color: '#000', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
+  inputSection: { 
+    position: 'absolute', bottom: 30, left: 20, right: 20, 
+    flexDirection: 'row', alignItems: 'center' 
+  },
+  input: { 
+    flex: 1, backgroundColor: '#1a1a1a', color: '#fff', padding: 18, 
+    borderRadius: 20, fontSize: 16, marginRight: 10, borderWidth: 1, borderColor: '#333'
+  },
+  fab: { 
+    backgroundColor: '#FFD700', width: 55, height: 55, borderRadius: 20, 
+    justifyContent: 'center', alignItems: 'center', elevation: 5 
+  },
+  fabText: { fontSize: 30, fontWeight: 'bold', color: '#000' },
+  emptyState: { alignItems: 'center', marginTop: 100 },
+  emptyIcon: { fontSize: 60, marginBottom: 10 },
+  emptyText: { color: '#444', fontSize: 16 }
 });
     
